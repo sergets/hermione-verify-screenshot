@@ -1,6 +1,6 @@
 # hermione-verify-screenshot [![npm module](https://img.shields.io/npm/v/hermione-verify-screenshot.svg?style=flat)](https://www.npmjs.com/package/hermione-verify-screenshot)
 
-Screenshot comparing plugin for [Hermione](https://github.com/gemini-testing/hermione)hermione
+Screenshot comparing plugin for [Hermione](https://github.com/gemini-testing/hermione)
 
 ## Usage
 
