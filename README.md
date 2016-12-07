@@ -27,7 +27,7 @@ it('should look like we want it', function() {
     return this.browser
         .verifyScreenshot(50, 50, 100, 100, '100-by-100-square')
         .verifyScreenshot('#selector', 'selector')
-        .verifyScreenshot('full-browser-window')
+        .verifyScreenshot('full-browser-window');
 })
 ````
 
