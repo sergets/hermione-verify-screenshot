@@ -69,7 +69,7 @@ module.exports = function(testBasePath, referencePath, diffPath) {
                                     if(screenshotsLookSame) {
                                         return fs.remove(tempPath);
                                     }
-                                    return saveScreenshotsDiff(getDiffPath(screenshotPath), tempPath, screenshotPath)
+                                    return saveScreenshotsDiff(tempPath, screenshotPath, getDiffPath(screenshotPath))
                                         .then(function() {
                                             return fs.remove(tempPath);
                                         })
@@ -131,4 +131,3 @@ function saveScreenshotsDiff(screenshot, referenceScreenshot, diffPath) {
             });
         });
 }
-
