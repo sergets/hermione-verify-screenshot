@@ -4,7 +4,7 @@ Screenshot comparing plugin for [Hermione](https://github.com/gemini-testing/her
 
 ## Usage
 
-- Install npm package. 
+- Install npm package.
 - Add a plugin declaration to your `hermione.conf.js`:
 
 ````js
@@ -26,8 +26,29 @@ plugins : {
 it('should look like we want it', function() {
     return this.browser
         .verifyScreenshot(50, 50, 100, 100, '100-by-100-square')
-        .verifyScreenshot('#selector', 'selector')
-        .verifyScreenshot('full-browser-window');
+        .verifyScreenshot(50, 50, 100, 100, '100-by-100-square', {
+            excludes: [{
+                selector: '.exclude-node'
+            }]
+        })
+        .verifyScreenshot('#selector', 'selector', {
+            excludes: [{
+                selector: '.exclude-node'
+            }]
+        })
+        .verifyScreenshot('full-browser-window', {
+            excludes: [{
+                selector: '.exclude-node'
+            }]
+        })
+        .verifyScreenshot('#selector', 'selector', {
+            excludes: [{
+                selector: '.exclude-node',
+                color: '#0000ff'
+            }, {
+                selector: '.another-exclude-node-to-fill' // default color is #ff0000
+            }]
+        });
 })
 ````
 

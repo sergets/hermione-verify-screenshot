@@ -8,17 +8,15 @@ var path = require('path'),
 var TOLERANCE = 20;
 
 module.exports = function(testBasePath, referencePath, diffPath) {
-    return function async(x, y, width, height, screenshotId) {
-        var selector,
-            screenshot;
+    return function async(x, y, width, height, screenshotId, options) {
+        var args = [].slice.apply(arguments);
 
-        if(arguments.length === 1) {
-            screenshotId = x;
-        }
-        else if(arguments.length === 2) {
-            selector = x;
-            screenshotId = y;
-        }
+        options = args.pop();
+        screenshotId = typeof options === 'string'? options : args.pop();
+
+        var selector = (args.length === 1) && x,
+            screenshot,
+            excludeSelectors = options && options.excludes;
 
         return this
             .saveScreenshot().then(function(screenshotBuffer) {
@@ -43,6 +41,48 @@ module.exports = function(testBasePath, referencePath, diffPath) {
                         })
                     }) :
                     { x : x || 0, y : y || 0, width : width || +Infinity, height : height || +Infinity }
+            })
+            .then(function(dimensions) {
+                if (!excludeSelectors) {
+                    return dimensions;
+                }
+
+                var screenshotSize = screenshot.size();
+                var excludePromises = excludeSelectors.map(function(excludeNode) {
+                    return this
+                        .getLocation(excludeNode.selector)
+                        .then(function(location) {
+                            return this.getElementSize(excludeNode.selector).then(function(elementSize) {
+                                var elementSizes = [].concat(elementSize);
+                                var locations = [].concat(location);
+
+                                return elementSizes
+                                    .map(function(size, i) {
+                                        return {
+                                            x: locations[i].x,
+                                            y: locations[i].y,
+                                            width: size.width,
+                                            height: size.height,
+                                            color: excludeNode.color || '#ff0000'
+                                        };
+                                    })
+                                    .filter(function(rect) {
+                                        return rect.x > 0 && (rect.x + size.width) < screenshotSize.width &&
+                                            rect.y > 0 && (rect.y + size.height) < screenshotSize.height;
+                                    })
+                                    .map(function(rect) {
+                                        return screenshot.fill(rect.x, rect.y, rect.width, rect.height, rect.color);
+                                    });
+                            });
+                        });
+                }, this);
+
+                return vow.all(excludePromises)
+                    .then(function() {
+                        return dimensions;
+                    }, function() {
+                        return dimensions;
+                    });
             })
             .then(function(dimensions) {
                 var screenshotSize = screenshot.size();
