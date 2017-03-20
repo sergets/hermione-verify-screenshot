@@ -3,7 +3,8 @@ var path = require('path'),
     vowNode = require('vow-node'),
     chalk = require('chalk'),
     PngImg = require('png-img'),
-    looksSame = require('looks-same');
+    looksSame = require('looks-same'),
+    vow = require('vow');
 
 var TOLERANCE = 20;
 
@@ -67,8 +68,8 @@ module.exports = function(testBasePath, referencePath, diffPath) {
                                         };
                                     })
                                     .filter(function(rect) {
-                                        return rect.x > 0 && (rect.x + size.width) < screenshotSize.width &&
-                                            rect.y > 0 && (rect.y + size.height) < screenshotSize.height;
+                                        return rect.x > 0 && (rect.x + rect.width) < screenshotSize.width &&
+                                            rect.y > 0 && (rect.y + rect.height) < screenshotSize.height;
                                     })
                                     .map(function(rect) {
                                         return screenshot.fill(rect.x, rect.y, rect.width, rect.height, rect.color);
