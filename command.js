@@ -6,8 +6,6 @@ var path = require('path'),
     looksSame = require('looks-same'),
     vow = require('vow');
 
-var TOLERANCE = 20;
-
 module.exports = function(testBasePath, referencePath, diffPath) {
     return function async(x, y, width, height, screenshotId, options) {
         var args = [].slice.apply(arguments);
@@ -17,7 +15,8 @@ module.exports = function(testBasePath, referencePath, diffPath) {
 
         var selector = (args.length === 1) && x,
             screenshot,
-            excludeSelectors = options && options.excludes;
+            excludeSelectors = options && options.excludes,
+            tolerance = options && options.tolerance;
 
         return this
             .saveScreenshot().then(function(screenshotBuffer) {
@@ -104,7 +103,7 @@ module.exports = function(testBasePath, referencePath, diffPath) {
                         return fs.makeTmpFile().then(function(tempPath) {
                             return saveScreenshot(screenshot, tempPath)
                                 .then(function() {
-                                    return compareScreenshots(tempPath, screenshotPath);
+                                    return compareScreenshots(tempPath, screenshotPath, tolerance);
                                 })
                                 .then(function(screenshotsLookSame) {
                                     if(screenshotsLookSame) {
@@ -156,8 +155,8 @@ function saveScreenshot(screenshot, filePath) {
     });
 }
 
-function compareScreenshots(screenshot, referenceScreenshot) {
-    return vowNode.invoke(looksSame, screenshot, referenceScreenshot, { tolerance : TOLERANCE });
+function compareScreenshots(screenshot, referenceScreenshot, tolerance) {
+    return vowNode.invoke(looksSame, screenshot, referenceScreenshot, { tolerance : tolerance });
 }
 
 function saveScreenshotsDiff(screenshot, referenceScreenshot, diffPath) {
