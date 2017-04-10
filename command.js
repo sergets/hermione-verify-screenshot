@@ -110,7 +110,7 @@ module.exports = function(pluginOptions) {
                                         pluginOptions.verbose && console.log(
                                             chalk.gray(' ... '),
                                             chalk.green('✓'),
-                                            chalk.gray('verified ', chalk.bold(screenshotId),' screenshot in ', chalk.bold(executionContext.browserId)));
+                                            chalk.gray('verified ', chalk.bold(screenshotId),' screenshot in ', chalk.bold(browserId)));
                                         return fs.remove(tempPath);
                                     }
                                     return saveScreenshotsDiff(tempPath, screenshotPath, getDiffPath(screenshotPath), tolerance)
