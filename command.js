@@ -6,7 +6,7 @@ var path = require('path'),
     looksSame = require('looks-same'),
     vow = require('vow');
 
-module.exports = function(testBasePath, referencePath, diffPath) {
+module.exports = function(pluginOptions) {
     return function async(x, y, width, height, screenshotId, options) {
         var args = [].slice.apply(arguments);
 
@@ -107,9 +107,13 @@ module.exports = function(testBasePath, referencePath, diffPath) {
                                 })
                                 .then(function(screenshotsLookSame) {
                                     if(screenshotsLookSame) {
+                                        pluginOptions.verbose && console.log(
+                                            chalk.gray(' ... '),
+                                            chalk.green('✓'),
+                                            chalk.gray('verified ', chalk.bold(screenshotId),' screenshot in ', chalk.bold(executionContext.browserId)));
                                         return fs.remove(tempPath);
                                     }
-                                    return saveScreenshotsDiff(tempPath, screenshotPath, getDiffPath(screenshotPath))
+                                    return saveScreenshotsDiff(tempPath, screenshotPath, getDiffPath(screenshotPath), tolerance)
                                         .then(function() {
                                             return fs.remove(tempPath);
                                         })
@@ -140,12 +144,12 @@ module.exports = function(testBasePath, referencePath, diffPath) {
     function getScreenshotPath(executionContext, id) {
         return path.relative(process.cwd(), executionContext.file)
             .replace(/\.js$/, '')
-            .replace(new RegExp('^' + testBasePath), referencePath) +
+            .replace(new RegExp('^' + pluginOptions.testBasePath), pluginOptions.referencePath) +
                 '/' + id + '.' + executionContext.browserId + '.png';
     }
 
     function getDiffPath(referenceScreenshot) {
-        return referenceScreenshot.replace(new RegExp('^' + referencePath), diffPath);
+        return referenceScreenshot.replace(new RegExp('^' + pluginOptions.referencePath), pluginOptions.diffPath);
     }
 };
 
@@ -159,14 +163,14 @@ function compareScreenshots(screenshot, referenceScreenshot, tolerance) {
     return vowNode.invoke(looksSame, screenshot, referenceScreenshot, { tolerance : tolerance });
 }
 
-function saveScreenshotsDiff(screenshot, referenceScreenshot, diffPath) {
+function saveScreenshotsDiff(screenshot, referenceScreenshot, diffPath, tolerance) {
     return fs.makeDir(path.dirname(diffPath))
         .then(function() {
             return vowNode.invoke(looksSame.createDiff.bind(looksSame), {
                 current : screenshot,
                 reference : referenceScreenshot,
                 diff : diffPath,
-                tolerance : TOLERANCE,
+                tolerance : tolerance,
                 highlightColor : '#00ff00'
             });
         });
