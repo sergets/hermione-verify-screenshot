@@ -12,12 +12,14 @@ plugins : {
     'verify-screenshot' : {
         testBasePath : '/func-test/tests',
         referencePath : '/func-test/screenshots',
-        diifPath : '/func-test/screenshots-diff'
+        unmatchedPath : '/func-test/screenshots-unmatched',
+        diffPath : '/func-test/screenshots-diff'
     }
 }
 ````
 `testBasePath` is a path under which your test suites are stored.<br>
 `referencePath` is a path under which reference screenshots would be stored.<br>
+`unmatchedPath` is a path under which you will find image when screenshots do not match to reference.<br>
 `diffPath` is a path under which you will find image diffs when screenshots do not match to reference.
 
 - Use `verifyScreenshot` command in your tests. It takes anything that should be shot (a x-y-width-height dimension set, a selector, or nothing meaning full window), and an arbitrary string (actually, a file name of screenshot).
