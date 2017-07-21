@@ -95,39 +95,36 @@ module.exports = function(pluginOptions) {
                 );
             })
             .then(function(screenshot) {
-                var screenshotPath = getScreenshotPath(this.executionContext, screenshotId),
+                var referencePath = getScreenshotPath(this.executionContext, screenshotId),
+                    unmatchedPath = getUnmatchedPath(referencePath),
+                    diffPath = getDiffPath(referencePath),
                     browserId = this.executionContext.browserId;
 
-                return fs.exists(screenshotPath).then(function(referenceScreenshotExists) {
+                return fs.exists(referencePath).then(function(referenceScreenshotExists) {
                     if(referenceScreenshotExists) {
-                        return fs.makeTmpFile().then(function(tempPath) {
-                            return saveScreenshot(screenshot, tempPath)
-                                .then(function() {
-                                    return compareScreenshots(tempPath, screenshotPath, tolerance);
-                                })
-                                .then(function(screenshotsLookSame) {
-                                    if(screenshotsLookSame) {
-                                        pluginOptions.verbose && console.log(
-                                            chalk.gray(' ... '),
-                                            chalk.green('✓'),
-                                            chalk.gray('verified ', chalk.bold(screenshotId),' screenshot in ', chalk.bold(browserId)));
-                                        return fs.remove(tempPath);
-                                    }
-                                    return saveScreenshotsDiff(tempPath, screenshotPath, getDiffPath(screenshotPath), tolerance)
-                                        .then(function() {
-                                            return fs.remove(tempPath);
-                                        })
-                                        .then(function() {
-                                            throw new Error(
-                                                'Screenshot "' +
-                                                screenshotId +
-                                                '" doesn\'t match to reference. See diff in func-test/screenshots-diff');
-                                        });
-                                });
-                        });
+                        return saveScreenshot(screenshot, unmatchedPath)
+                            .then(function() {
+                                return compareScreenshots(unmatchedPath, referencePath, tolerance);
+                            })
+                            .then(function(screenshotsLookSame) {
+                                if(screenshotsLookSame) {
+                                    pluginOptions.verbose && console.log(
+                                        chalk.gray(' ... '),
+                                        chalk.green('✓'),
+                                        chalk.gray('verified ', chalk.bold(screenshotId),' screenshot in ', chalk.bold(browserId)));
+                                    return fs.remove(unmatchedPath);
+                                }
+                                return saveScreenshotsDiff(unmatchedPath, referencePath, diffPath, tolerance)
+                                    .then(function() {
+                                        throw new Error(
+                                            'Screenshot "' +
+                                            screenshotId +
+                                            '" doesn\'t match to reference. See diff in func-test/screenshots-diff');
+                                    });
+                            });
                     }
                     else {
-                        return saveScreenshot(screenshot, screenshotPath).then(function() {
+                        return saveScreenshot(screenshot, referencePath).then(function() {
                             console.warn(chalk.red(
                                 'Reference screenshot "' +
                                 screenshotId +
@@ -146,6 +143,10 @@ module.exports = function(pluginOptions) {
             .replace(/\.js$/, '')
             .replace(new RegExp('^' + pluginOptions.testBasePath), pluginOptions.referencePath) +
                 '/' + id + '.' + executionContext.browserId + '.png';
+    }
+
+    function getUnmatchedPath(referenceScreenshot) {
+        return referenceScreenshot.replace(new RegExp('^' + pluginOptions.referencePath), pluginOptions.unmatchedPath);
     }
 
     function getDiffPath(referenceScreenshot) {
