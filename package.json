@@ -1,6 +1,6 @@
 {
   "name": "hermione-verify-screenshot",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Screenshot comparing plugin for hermione",
   "main": "index.js",
   "scripts": {
