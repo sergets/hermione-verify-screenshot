@@ -116,6 +116,17 @@ module.exports = function(pluginOptions) {
                                 }
                                 return saveScreenshotsDiff(unmatchedPath, referencePath, diffPath, tolerance)
                                     .then(function() {
+                                        return allure && vow.all([
+                                            fs.read(unmatchedPath),
+                                            fs.read(referencePath),
+                                            fs.read(diffPath)
+                                        ]).spread(function(unmatched, reference, diff) {
+                                            allure.createAttachment(screenshotId + ' (unmatched)', unmatched, 'image/png');
+                                            allure.createAttachment(screenshotId + ' (reference)', reference, 'image/png');
+                                            allure.createAttachment(screenshotId + ' (diff)', diff, 'image/png');
+                                        });
+                                    })
+                                    .then(function() {
                                         throw new Error(
                                             'Screenshot "' +
                                             screenshotId +
