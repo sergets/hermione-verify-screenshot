@@ -98,7 +98,8 @@ module.exports = function(pluginOptions) {
                 var referencePath = getScreenshotPath(this.executionContext, screenshotId),
                     unmatchedPath = getUnmatchedPath(referencePath),
                     diffPath = getDiffPath(referencePath),
-                    browserId = this.executionContext.browserId;
+                    browserId = this.executionContext.browserId,
+                    allure = this.allure;
 
                 return fs.exists(referencePath).then(function(referenceScreenshotExists) {
                     if(referenceScreenshotExists) {
