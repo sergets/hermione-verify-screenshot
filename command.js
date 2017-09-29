@@ -32,11 +32,14 @@ module.exports = function(pluginOptions) {
                     })
                     .getLocationInView(selector).then(function(location) {
                         return this.getElementSize(selector).then(function(elementSize) {
+                            var elementSizes = [].concat(elementSize);
+                            var locations = [].concat(location);
+
                             return {
-                                x : location.x,
-                                y : location.y,
-                                width : elementSize.width,
-                                height : elementSize.height
+                                x : locations[0].x,
+                                y : locations[0].y,
+                                width : elementSizes[0].width,
+                                height : elementSizes[0].height
                             };
                         })
                     }) :
