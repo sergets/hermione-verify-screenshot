@@ -89,12 +89,14 @@ module.exports = function(pluginOptions) {
             })
             .then(function(dimensions) {
                 var screenshotSize = screenshot.size();
+                var offsetX = Math.max(dimensions.x, 0);
+                var offsetY = Math.max(dimensions.y, 0);
 
                 return screenshot.crop(
-                    Math.max(dimensions.x, 0),
-                    Math.max(dimensions.y, 0),
-                    Math.min(dimensions.width, screenshotSize.width),
-                    Math.min(dimensions.height, screenshotSize.height)
+                    offsetX,
+                    offsetY,
+                    Math.min(screenshotSize.width - offsetX, dimensions.width, screenshotSize.width),
+                    Math.min(screenshotSize.height - offsetY, dimensions.height, screenshotSize.height)
                 );
             })
             .then(function(screenshot) {
