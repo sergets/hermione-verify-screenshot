@@ -57,7 +57,7 @@ module.exports = function(pluginOptions) {
                         .then(function(location) {
                             return this.getElementSize(excludeNode.selector).then(function(elementSize) {
                                 var elementSizes = [].concat(elementSize);
-                                var locations = [].concat(location);
+                                var locations = [].concat(location).reverse();
 
                                 return elementSizes
                                     .map(function(size, i) {
