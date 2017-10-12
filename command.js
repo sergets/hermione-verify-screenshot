@@ -30,13 +30,16 @@ module.exports = function(pluginOptions) {
                         }
                         return true;
                     })
-                    .getLocationInView(selector).then(function(location) {
+                        .getLocationInView(selector).then(function(location) {
                         return this.getElementSize(selector).then(function(elementSize) {
+                            var elementSizes = [].concat(elementSize);
+                            var locations = [].concat(location);
+
                             return {
-                                x : location.x,
-                                y : location.y,
-                                width : elementSize.width,
-                                height : elementSize.height
+                                x : locations[0].x,
+                                y : locations[0].y,
+                                width : elementSizes[0].width,
+                                height : elementSizes[0].height
                             };
                         })
                     }) :
@@ -85,13 +88,15 @@ module.exports = function(pluginOptions) {
                     });
             })
             .then(function(dimensions) {
-                var screenshotSize = screenshot.size();
+                var screenshotSize = screenshot.size(),
+                    offsetX = Math.max(dimensions.x, 0),
+                    offsetY = Math.max(dimensions.y, 0);
 
                 return screenshot.crop(
-                    Math.max(dimensions.x, 0),
-                    Math.max(dimensions.y, 0),
-                    Math.min(dimensions.width, screenshotSize.width),
-                    Math.min(dimensions.height, screenshotSize.height)
+                    offsetX,
+                    offsetY,
+                    Math.min(screenshotSize.width - offsetX, dimensions.width, screenshotSize.width),
+                    Math.min(screenshotSize.height - offsetY, dimensions.height, screenshotSize.height)
                 );
             })
             .then(function(screenshot) {
@@ -118,15 +123,7 @@ module.exports = function(pluginOptions) {
                                 return saveScreenshotsDiff(unmatchedPath, referencePath, diffPath, tolerance)
                                     .then(function() {
                                         if(allure) {
-                                            return vow.all([
-                                                fs.read(unmatchedPath),
-                                                fs.read(referencePath),
-                                                fs.read(diffPath)
-                                            ]).spread(function(unmatched, reference, diff) {
-                                                allure.createAttachment(screenshotId + ' (unmatched)', unmatched, 'image/png');
-                                                allure.createAttachment(screenshotId + ' (reference)', reference, 'image/png');
-                                                allure.createAttachment(screenshotId + ' (diff)', diff, 'image/png');
-                                            });
+                                            return createAllureAttachments(allure, screenshotId, browserId, unmatchedPath, referencePath, diffPath);
                                         }
                                     })
                                     .then(function() {
@@ -154,9 +151,9 @@ module.exports = function(pluginOptions) {
 
     function getScreenshotPath(executionContext, id) {
         return path.relative(process.cwd(), executionContext.file)
-            .replace(/\.js$/, '')
-            .replace(new RegExp('^' + pluginOptions.testBasePath), pluginOptions.referencePath) +
-                '/' + id + '.' + executionContext.browserId + '.png';
+                .replace(/\.js$/, '')
+                .replace(new RegExp('^' + pluginOptions.testBasePath), pluginOptions.referencePath) +
+            '/' + id + '.' + executionContext.browserId + '.png';
     }
 
     function getUnmatchedPath(referenceScreenshot) {
@@ -189,4 +186,47 @@ function saveScreenshotsDiff(screenshot, referenceScreenshot, diffPath, toleranc
                 highlightColor : '#00ff00'
             });
         });
+}
+
+function createAllureAttachments(allure, screenshotId, browserId, unmatchedPath, referencePath, diffPath) {
+    return vow.all([
+        fs.read(unmatchedPath),
+        fs.read(referencePath),
+        fs.read(diffPath)
+    ]).spread(function(unmatched, reference, diff) {
+        allure.createAttachment(
+            'Screenshot ' + screenshotId + ' mismatch in ' + browserId,
+            getComparisonHtml(unmatched, reference, diff),
+            'text/html');
+    });
+}
+
+function getComparisonHtml(unmatchedContent, referenceContent, diffContent) {
+    var unmatchedBase64 = 'data:image/png;base64,' + new Buffer(unmatchedContent).toString('base64'),
+        referenceBase64 = 'data:image/png;base64,' + new Buffer(referenceContent).toString('base64'),
+        diffBase64 = 'data:image/png;base64,' + new Buffer(diffContent).toString('base64');
+
+    return (
+        '<html>' +
+            '<head>' +
+                '<style type="text/css">' +
+                    '.comparison { position: relative; float: left }' +
+                    '.diff { position: relative }' +
+                    '.unmatched, .reference { display: none; position: absolute; top: 0 }' +
+                    '.hotspot { position: absolute; top: 0; height: 100%; width: 50%; z-index: 1 }' +
+                    '.reference-hotspot { left: 50% }' +
+                    '.unmatched-hotspot:hover~.unmatched, .reference-hotspot:hover~.reference { display: block }' +
+                '</style>' +
+            '</head>' +
+            '<body>' +
+                '<div class="comparison">' +
+                    '<div class="reference-hotspot hotspot"></div>' +
+                    '<div class="unmatched-hotspot hotspot"></div>' +
+                    '<img class="screenshot diff" src="' + diffBase64 + '"/>' +
+                    '<img class="screenshot unmatched" src="' + unmatchedBase64 + '"/>' +
+                    '<img class="screenshot reference" src="' + referenceBase64 + '"/>' +
+                '</div>' +
+            '</body>' +
+        '</html>'
+    );
 }
