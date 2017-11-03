@@ -4,7 +4,8 @@ var path = require('path'),
     chalk = require('chalk'),
     PngImg = require('png-img'),
     looksSame = require('looks-same'),
-    vow = require('vow');
+    vow = require('vow'),
+    chai = require('chai');
 
 module.exports = function(pluginOptions) {
     return function async(x, y, width, height, screenshotId, options) {
@@ -26,9 +27,11 @@ module.exports = function(pluginOptions) {
                 return selector?
                     this.isVisible(selector).then(function(isVisible) {
                         if(!isVisible) {
-                            throw new Error('Element "' + selector + '" could not be snapped because it is not visible');
+                            reportError('Element "' + selector + '" could not be snapped because it is not visible');
                         }
-                        return true;
+                        else {
+                            return true;
+                        }
                     })
                         .getLocationInView(selector).then(function(location) {
                         return this.getElementSize(selector).then(function(elementSize) {
@@ -127,7 +130,7 @@ module.exports = function(pluginOptions) {
                                         }
                                     })
                                     .then(function() {
-                                        throw new Error(
+                                        reportError(
                                             'Screenshot "' +
                                             screenshotId +
                                             '" doesn\'t match to reference. See diff in func-test/screenshots-diff');
@@ -229,4 +232,8 @@ function getComparisonHtml(unmatchedContent, referenceContent, diffContent) {
             '</body>' +
         '</html>'
     );
+}
+
+function reportError(text) {
+    chai.assert(false, text);
 }
