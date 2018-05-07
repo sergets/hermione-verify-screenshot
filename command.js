@@ -73,8 +73,8 @@ module.exports = function(pluginOptions) {
                                         };
                                     })
                                     .filter(function(rect) {
-                                        return rect.x > 0 && (rect.x + rect.width) < screenshotSize.width &&
-                                            rect.y > 0 && (rect.y + rect.height) < screenshotSize.height;
+                                        return rect.x >= 0 && (rect.x + rect.width) < screenshotSize.width &&
+                                            rect.y >= 0 && (rect.y + rect.height) < screenshotSize.height;
                                     })
                                     .map(function(rect) {
                                         return screenshot.fill(rect.x, rect.y, rect.width, rect.height, rect.color);
